@@ -35,6 +35,15 @@ let getProducts = async () => {
       'Accept-Encoding': 'gzip, deflate, br'
     }
   });
+  let taxes =  await axios.get(`https://www.casaplant.ro/wp-json/wc/v3/taxes/`, {
+    headers: {
+      'Authorization': 'Basic Y2tfNjQ3OGE0MTUzYTliNTE1ZjEzMjcwYzkwMTNhNTZlMTY5NmI4N2JkZDpjc18wOWJmZGNmNzY0NmZmNmNhNTVjZGYyNDUyMTE2Zjk0NDM4MzhiNjMx',
+      'Content-Type': 'application/json',
+      'Host': 'www.casaplant.ro',
+      'Connection': 'keep-alive',
+      'Accept-Encoding': 'gzip, deflate, br'
+    }
+  });
 
   var parser = new xml2js.Parser({ trim: true, normalizeTags: true, tagNameProcessors: [processWrongTags], attrValueProcessors: [processWrongAttrs] });
   parser.parseString(response.data, async function (err, result) {
@@ -84,6 +93,7 @@ let getProducts = async () => {
                 id: category.data[0].id
               }
             ],
+            tax_class: taxes.data.find(x => parseInt(x.rate).toFixed(0) === parseInt(element.cota_tva).toFixed(0)) ? taxes.data.find(x => parseInt(x.rate).toFixed(0) === parseInt(element.cota_tva).toFixed(0)).class : "standard",
             status: element.status === 'Inactiv' ? 'draft' : 'publish'
           }
           //create new product in CasaPlant
@@ -125,8 +135,10 @@ let getProducts = async () => {
                 id: category.data[0].id
               }
             ],
+            tax_class: taxes.data.find(x => parseInt(x.rate).toFixed(0) === parseInt(element.cota_tva).toFixed(0)) ? taxes.data.find(x => parseInt(x.rate).toFixed(0) === parseInt(element.cota_tva).toFixed(0)).class : "standard",
             status: element.status === 'Inactiv' ? 'draft' : 'publish'
           }
+          console.log(productToUpdate)
           //update product in CasaPlant
           await axios.put(`https://www.casaplant.ro/wp-json/wc/v3/products/${productFromCasaPlant.data[0].id}`, productToUpdate, {
             headers: {
